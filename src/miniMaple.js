@@ -6,19 +6,40 @@ class MiniMaple {
             throw new Error("Unsupported operation");
         }
 
-        const term = this.parseTerm(normalizedExpression);
+        const terms = this.parseExpression(normalizedExpression);
 
-        if ((term.variable === null) || (term.variable !== variable)) {
-            return "0";
+        const differentiatedTerms = terms
+            .map(term => this.differentiateTerm(term, variable))
+            .filter(term => term !== null && term.coefficient !== 0);
+
+        return this.formatExpression(differentiatedTerms);
+    }
+
+    parseExpression(expression) {
+        const signedTerms = expression.match(/[+-]?[^+-]+/g);
+
+        if (!signedTerms || signedTerms.join("") !== expression) {
+            throw new Error("Invalid expression");
         }
 
-        const newTerm = {
-            coefficient: term.coefficient * term.exponent,
-            variable: term.variable,
-            exponent: term.exponent - 1
-        };
+        return signedTerms.map(signedTerm => {
+            let sign = 1;
+            let termText = signedTerm;
 
-        return this.formatTerm(newTerm);
+            if (signedTerm.startsWith("+")) {
+                termText = signedTerm.slice(1);
+            } else if (signedTerm.startsWith("-")) {
+                sign = -1;
+                termText = signedTerm.slice(1);
+            }
+
+            const term = this.parseTerm(termText);
+
+            return {
+                ...term,
+                coefficient: term.coefficient * sign
+            };
+        });
     }
 
     parseTerm(expression) {
@@ -44,7 +65,46 @@ class MiniMaple {
             exponent: match[3] ? Number(match[3]) : 1
         };
     }
-        // A number by itself is a constant.
+
+    differentiateTerm(term, variable) {
+        if (term.variable === null || term.variable !== variable) {
+            return null;
+        }
+
+        return {
+            coefficient: term.coefficient * term.exponent,
+            variable: term.variable,
+            exponent: term.exponent - 1
+        };
+    }
+
+    formatExpression(terms) {
+        if (terms.length === 0) {
+            return "0";
+        }
+
+        return terms
+            .map((term, index) => {
+                const absoluteTerm = {
+                    ...term,
+                    coefficient: Math.abs(term.coefficient)
+                };
+
+                const formattedTerm = this.formatTerm(absoluteTerm);
+                const isNegative = term.coefficient < 0;
+
+                if (index === 0) {
+                    return isNegative
+                        ? `-${formattedTerm}`
+                        : formattedTerm;
+                }
+
+                return isNegative
+                    ? ` - ${formattedTerm}`
+                    : ` + ${formattedTerm}`;
+            })
+            .join("");
+    }
 
     formatTerm(term) {
         if (term.exponent === 0) {

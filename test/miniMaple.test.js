@@ -41,4 +41,20 @@ describe("MiniMaple", () => {
         expect(() => miniMaple.diff("x/2", "x"))
             .toThrow("Unsupported operation");
     });
+
+    test("coefficient and variable", () => {
+        expect(miniMaple.diff("3 * x", "x")).toBe("3");
+    });
+
+    test("removes constants from a polynomial derivative", () => {
+        expect(miniMaple.diff("x^2+7", "x")).toBe("2*x");
+    });
+
+    test("removes terms containing unrelated variables", () => {
+        expect(miniMaple.diff("x^2+y^2", "x")).toBe("2*x");
+    });
+
+    test("handles a negative first term", () => {
+        expect(miniMaple.diff("-x^2+x", "x")).toBe("-2*x + 1");
+    });
 });
