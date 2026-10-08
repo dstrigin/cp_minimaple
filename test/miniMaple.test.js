@@ -7,10 +7,6 @@ describe("MiniMaple", () => {
         miniMaple = new MiniMaple();
     });
 
-    test.only("differentiates a monomial", () => {
-        expect(miniMaple.diff("4*x^3", "x")).toBe("12*x^2");
-    });
-
     test("differentiates a monomial", () => {
         expect(miniMaple.diff("4*x^3", "x")).toBe("12*x^2");
     });
